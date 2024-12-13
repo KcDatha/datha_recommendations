@@ -523,5 +523,3 @@ else:
                         st.rerun()
         else:
             st.info("No similar movies found at this time.")
-    except Exception as e:
-        st.error("Unable to fetch similar movies at this time.")
