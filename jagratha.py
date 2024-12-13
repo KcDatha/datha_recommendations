@@ -400,7 +400,7 @@ st.markdown("""
 
 # Remove the old button container HTML and replace with simpler sidebar navigation
 st.sidebar.title("🎬 Navigation")
-page = st.sidebar.radio("Choose:", ["Movie Search", "Actor Search"])
+page = st.sidebar.radio("Choose:", ["Movie Search"])
 
 if page == "Movie Search":
     movie_search = st.text_input("Search for a movie")
@@ -435,18 +435,7 @@ if page == "Movie Search":
         else:
             st.error("🔍 No movies found matching your search.")
 
-elif page == "Actor Search":
-    actor_name = st.text_input("Search for an actor")
-    if actor_name:
-        actor_movies = fetch_movies_by_actor(actor_name)
-        if actor_movies:
-            st.subheader(f"Movies featuring {actor_name}")
-            for i in range(0, len(actor_movies), 5):
-                cols = st.columns(5)
-                batch = actor_movies[i:i+5]
-                for col, (movie_title, movie_poster) in zip(cols, batch):
-                    with col:
-                        st.image(movie_poster, caption=movie_title, use_container_width=True)
+
 
 # Display random movies section
 st.header("🎲 Explore Random Movies")
