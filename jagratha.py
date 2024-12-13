@@ -1096,7 +1096,7 @@ if movie_search:
             cols = st.columns(5)
             for idx, movie in enumerate(matching_movies[:5]):
                 with cols[idx]:
-                    st.image(movie['poster'], use_container_width=True)
+                    st.image(movie['poster'])
                     st.markdown(f"""
                         <div class="movie-card">
                             <div class="movie-title">{movie['title']}</div>
@@ -1144,7 +1144,7 @@ if st.session_state.selected_movie:
     
     col1, col2 = st.columns([1, 2])
     with col1:
-        st.image(movie['poster'], use_container_width=True)
+        st.image(movie['poster'])
     with col2:
         st.title(movie['title'])
         st.markdown(f'<span class="tag">⭐ {movie["rating"]}</span>', unsafe_allow_html=True)
