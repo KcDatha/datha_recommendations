@@ -382,7 +382,7 @@ if page == "Movie Search":
                         unique_key = f"search_{page}{i}{idx}{hash(movie['title'])}{movie.get('id', '')}"
                         if st.button("More Info", key=unique_key):
                             st.session_state.selected_movie = movie
-                            st.rerun()
+                            st.experimental_rerun()
         else:
             st.error("🔍 No movies found matching your search.")
 
