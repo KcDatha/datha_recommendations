@@ -43,41 +43,17 @@ def fetch_movie_details(movie_id):
         }
 
 # Function to fetch cast information
-# Function to fetch cast information
 def fetch_movie_cast(movie_id):
     try:
-        # Add headers to the request
-        headers = {
-            "accept": "application/json",
-            "Authorization": f"Bearer {API_KEY}"
-        }
         url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key={API_KEY}"
-        response = requests.get(url)
-        
-        # Add debug logging
-        if response.status_code != 200:
-            st.error(f"Failed to fetch cast. Status code: {response.status_code}")
-            return ["Cast information not available"]
-            
-        data = response.json()
-        cast = data.get('cast', [])
-        
-        # Check if we got any cast members
-        if not cast:
-            return ["No cast information available"]
-            
-        # Get top 5 cast members with role information
-        main_cast = []
-        for actor in cast[:5]:
-            actor_name = actor.get('name', 'Unknown')
-            character = actor.get('character', 'Unknown Role')
-            main_cast.append(f"{actor_name} as {character}")
-            
+        response = requests.get(url).json()
+        cast = response.get('cast', [])
+        # Get top 5 cast members
+        main_cast = [actor['name'] for actor in cast[:5]]
         return main_cast
-        
-    except Exception as e:
-        st.error(f"Error fetching cast: {str(e)}")
+    except Exception:
         return ["Cast information not available"]
+
 # Function to fetch random movies for the homepage
 def get_random_movies(num_movies=20):
     random_indices = random.sample(range(len(movies)), num_movies)
@@ -101,41 +77,40 @@ def get_random_movies(num_movies=20):
 # Function to recommend movies
 def recommend(movie):
     try:
-        # Add debug print to check if movie exists in DataFrame
         if movie not in movies['title'].values:
             st.warning(f"Movie '{movie}' not found in database")
             return []
             
-        # Get movie ID
         movie_index = movies[movies['title'] == movie].index[0]
         movie_id = movies.iloc[movie_index].id
         
-        # Add debug print for API call
         url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={API_KEY}&language=en-US&page=1"
         response = requests.get(url)
         
-        # Check API response status
-        if response.status_code != 200:
-            st.warning(f"TMDB API error: {response.status_code}")
+        if response.status_code == 429:
+            st.error("TMDB API rate limit exceeded. Please try again later.")
+            return []
+        elif response.status_code != 200:
+            st.error(f"TMDB API error {response.status_code}: {response.text}")
             return []
             
         data = response.json()
         
-        # Check if we got any recommendations
         if not data.get('results'):
             st.info("No recommendations found for this movie")
             return []
         
         recommended_movies = []
-        for movie in data['results'][:5]:  # Get top 5 recommendations
+        for movie in data['results'][:5]:
             details = fetch_movie_details(movie['id'])
-            details['title'] = movie.get('title', 'Unknown Title')  # Add title to details
+            details['title'] = movie.get('title', 'Unknown Title')
             recommended_movies.append(details)
         
         return recommended_movies
         
     except Exception as e:
         st.error(f"Recommendation error: {str(e)}")
+        st.error("Stack trace:", exc_info=True)
         return []
 
 # Function to fetch movies by actor
@@ -199,51 +174,62 @@ def fetch_movies_by_genre(genre_id, page=1):
 def add_custom_css():
     st.markdown("""
         <style>
-            .stApp {
-                background-image: url('https://hougumlaw.com/wp-content/uploads/2016/05/light-website-backgrounds-light-color-background-images-light-color-background-images-for-website-1024x640.jpg'),
-                             linear-gradient(135deg, #f5f7fa 0%, #e3eeff 100%) !important;
-                background-attachment: fixed !important;
-                color: #1a1a1a !important;
+            body {
+                font-family: 'Arial', sans-serif;
+                background: linear-gradient(135deg, #1f1c2c, #928dab);
+                color: white;
             }
 
-            /* Update header styles for better contrast */
+            /* Header styles */
             .header {
                 text-align: center;
                 padding: 40px 20px;
-                background: linear-gradient(to right, rgba(255, 126, 95, 0.9), rgba(254, 180, 123, 0.9));
+                background: linear-gradient(to right, #ff7e5f, #feb47b);
                 color: white;
                 border-radius: 8px;
                 margin-bottom: 30px;
-                backdrop-filter: blur(5px);
             }
 
-            /* Update movie card styles */
+            /* Movie cards in a row */
+            .movie-row {
+                display: flex;
+                overflow-x: auto;
+                gap: 20px;
+                padding: 10px 0;
+                margin-bottom: 30px;
+            }
+
             .movie-card {
                 flex: 0 0 auto;
-                background: rgba(255, 255, 255, 0.9);
+                background: #2c2c54;
                 border-radius: 12px;
                 padding: 10px;
                 width: 200px;
                 text-align: center;
-                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
                 transition: transform 0.3s ease, box-shadow 0.3s ease;
-                backdrop-filter: blur(5px);
             }
 
             .movie-card:hover {
-                transform: scale(1.05);
-                box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+                transform: scale(1.1);
+                box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.4);
+            }
+
+            .movie-card img {
+                border-radius: 8px;
+                width: 100%;
+                height: auto;
             }
 
             .movie-card h4 {
                 margin: 10px 0;
                 font-size: 1rem;
-                color: #2c3e50;
+                color: #ffcc00;
             }
 
             .movie-card p {
                 font-size: 0.85rem;
-                color: #34495e;
+                color: #d9d9d9;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -256,15 +242,24 @@ if 'page' not in st.session_state:
 if 'selected_movie' not in st.session_state:
     st.session_state.selected_movie = None
 
-# Silently load data without any print or write statements
+# Update the load_data function with better error handling
 @st.cache_data  # Cache the data loading
 def load_data():
-    movies = pickle.load(open("movies_list.pkl", "rb"))
-    movies_list = movies["title"].values
-    return movies, movies_list
+    try:
+        movies = pickle.load(open("movies_list.pkl", "rb"))
+        movies_list = movies["title"].values
+        return movies, movies_list
+    except FileNotFoundError:
+        st.error("Error: movies_list.pkl file not found. Please ensure the file exists in the correct directory.")
+        return None, None
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        return None, None
 
-# Load data silently
+# Update the data loading section with error checking
 movies, movies_list = load_data()
+if movies is None:
+    st.stop()  # Stop execution if data loading failed
 
 # Remove any automatic writes or debug messages
 if 'write' in st.session_state:
@@ -350,10 +345,28 @@ st.markdown("""
 
 # Remove the old button container HTML and replace with simpler sidebar navigation
 st.sidebar.title("🎬 Navigation")
-page = st.sidebar.radio("Choose:", ["Movie Search", "Actor Search"])
+page = st.sidebar.radio("Choose:", ["Genre Explorer", "Movie Search", "Actor Search"])
 
+if page == "Genre Explorer":
+    selected_genre = st.selectbox("Select a Genre", list(GENRES.keys()))
+    
+    if selected_genre:
+        st.subheader(f"Top {selected_genre} Movies")
+        genre_movies = fetch_movies_by_genre(GENRES[selected_genre])
+        
+        if genre_movies:
+            for i in range(0, len(genre_movies), 5):
+                cols = st.columns(5)
+                batch = genre_movies[i:i+5]
+                for col, movie in zip(cols, batch):
+                    with col:
+                        st.image(movie['poster'], caption=movie['title'], use_container_width=True)
+                        st.markdown(f"⭐ {movie['rating']}")
+                        if st.button("More Info", key=f"genre_{movie.get('title')}"):
+                            st.session_state.selected_movie = movie
+                            st.rerun()
 
-if page == "Movie Search":
+elif page == "Movie Search":
     movie_search = st.text_input("Search for a movie")
     if movie_search:
         matching_movies = []
@@ -375,14 +388,14 @@ if page == "Movie Search":
                 batch = matching_movies[i:i+5]
                 for idx, (col, movie) in enumerate(zip(cols, batch)):
                     with col:
-                        st.image(movie['poster'], caption=movie['title'])
+                        st.image(movie['poster'], caption=movie['title'], use_container_width=True)
                         st.markdown(f"⭐ {movie['rating']}")
-                        st.write(f"{movie['genres']}")
+                        st.write(f"**{movie['genres']}**")
                         # Create a completely unique key using multiple identifiers
-                        unique_key = f"search_{page}{i}{idx}{hash(movie['title'])}{movie.get('id', '')}"
+                        unique_key = f"search_{page}_{i}_{idx}_{hash(movie['title'])}_{movie.get('id', '')}"
                         if st.button("More Info", key=unique_key):
                             st.session_state.selected_movie = movie
-                            st.experimental_rerun()
+                            st.rerun()
         else:
             st.error("🔍 No movies found matching your search.")
 
@@ -397,131 +410,62 @@ elif page == "Actor Search":
                 batch = actor_movies[i:i+5]
                 for col, (movie_title, movie_poster) in zip(cols, batch):
                     with col:
-                        st.image(movie_poster, caption=movie_title)
+                        st.image(movie_poster, caption=movie_title, use_container_width=True)
         else:
             st.warning("No movies found for this actor.")
 
 # Display random movies section
-# st.header("🎲 Explore Random Movies")
-# random_movies = get_random_movies(20)
-
-# # Check if a movie is selected
-# if st.session_state.selected_movie is None:
-#     # Display random movies grid
-#     for i in range(0, len(random_movies), 5):
-#         row_movies = random_movies[i:i+5]
-#         cols = st.columns(5)
-        
-#         for col, movie in zip(cols, row_movies):
-#             with col:
-#                 st.image(movie['poster'], caption=movie['title'], use_container_width=True)
-#                 st.write(f"⭐ {movie['rating']}")
-#                 st.write(f"🎭 {movie['genres']}")
-#                 # Create unique key for each button
-#                 button_key = f"random_{movie['id']}{i}{hash(movie['title'])}"
-#                 if st.button("More Info", key=button_key):
-#                     st.session_state.selected_movie = movie
-#                     st.rerun()
-
-# else:
-#     # Display movie details when a movie is selected
-#     movie = st.session_state.selected_movie
-    
-#     # Add a back button
-#     if st.button("← Back to Movies"):
-#         st.session_state.selected_movie = None
-#         st.rerun()
-    
-#     # Display movie details in two columns
-#     col1, col2 = st.columns([1, 2])
-#     with col1:
-#         st.image(movie['poster'], use_container_width=True)
-    
-#     with col2:
-#         st.title(movie['title'])
-#         st.write(f"*Rating:* ⭐ {movie['rating']}")
-#         st.write(f"*Release Date:* 📅 {movie['release_date']}")
-#         st.write(f"*Genres:* 🎭 {movie['genres']}")
-#         st.write("*Overview:*")
-#         st.write(movie['overview'])
-#         st.write("*Main Cast:*")
-#         if 'cast' in movie:
-#             for actor in movie['cast']:
-#                 st.write(f"• {actor}")
-    
-
-
-
-
-
-# Display random movies section
 st.header("🎲 Explore Random Movies")
+random_movies = get_random_movies(20)
 
-# Generate random movies only once and store in session state
-if 'random_movies' not in st.session_state:
-    st.session_state.random_movies = get_random_movies(20)
-
-# Check if a movie is selected
 if st.session_state.selected_movie is None:
-    # Display random movies grid using stored movies
-    for i in range(0, len(st.session_state.random_movies), 5):
-        row_movies = st.session_state.random_movies[i:i+5]
+    for i in range(0, len(random_movies), 5):
+        row_movies = random_movies[i:i+5]
         cols = st.columns(5)
         
         for col, movie in zip(cols, row_movies):
             with col:
-                st.image(movie['poster'], caption=movie['title'])
-                st.write(f"⭐ {movie['rating']}")
-                st.write(f"🎭 {movie['genres']}")
-                # Create unique key for each button
-                button_key = f"random_{movie['id']}{i}{hash(movie['title'])}"
-                if st.button("More Info", key=button_key):
-                    st.session_state.selected_movie = movie
-                    st.experimental_rerun()
+                st.image(movie['poster'], caption=movie['title'], use_container_width=True)
+                st.write(f"Rating: {movie['rating']}")
+                st.write(f"Genres: {movie['genres']}")
 
 else:
-    # Display movie details when a movie is selected
     movie = st.session_state.selected_movie
-    
-    # Add a back button
     if st.button("← Back to Movies"):
         st.session_state.selected_movie = None
-        st.session_state.random_movies = get_random_movies(20)  # Get new random movies when going back
-        st.experimental_rerun()
+        st.rerun()
     
-    # Display movie details in two columns
     col1, col2 = st.columns([1, 2])
     with col1:
-        st.image(movie['poster'])
-    
+        st.image(movie['poster'], use_container_width=True)
     with col2:
         st.title(movie['title'])
-        st.write(f"*Rating:* ⭐ {movie['rating']}")
-        st.write(f"*Release Date:* 📅 {movie['release_date']}")
-        st.write(f"*Genres:* 🎭 {movie['genres']}")
-        st.write("*Overview:*")
+        st.write(f"**Rating:** {movie['rating']}")
+        st.write(f"**Release Date:** {movie['release_date']}")
+        st.write(f"**Genres:** {movie['genres']}")
+        st.write("**Overview:**")
         st.write(movie['overview'])
-
-
-
-
-        # Display similar movies section
+        st.write("**Main Cast:**")
+        if 'cast' in movie:
+            for actor in movie['cast']:
+                st.write(f"• {actor}")
+    
+    # Similar Movies Section
     st.header("Similar Movies You Might Like")
+    
     try:
         recommended_movies = recommend(movie['title'])
+        
         if recommended_movies:
             similar_movies_cols = st.columns(5)
             for idx, rec_movie in enumerate(recommended_movies):
                 with similar_movies_cols[idx]:
-                    st.image(rec_movie['poster'], caption=rec_movie['title'])
-                    st.write(f"⭐ {rec_movie['rating']}")
-                    st.write(f"🎭 {rec_movie['genres']}")
-                    # Create unique key for recommendation buttons
-                    rec_button_key = f"similar_{idx}_{hash(rec_movie['title'])}"
-                    if st.button("More Info", key=rec_button_key):
-                        st.session_state.selected_movie = rec_movie
-                        st.rerun()
+                    st.image(rec_movie['poster'], caption=rec_movie['title'], use_container_width=True)
+                    st.write(f"**Rating:** {rec_movie['rating']}")
+                    st.write(f"**Genres:** {rec_movie['genres']}")
         else:
             st.info("No similar movies found at this time.")
+                    
     except Exception as e:
-        st.error("are you sure! if yes please click again")
+        st.error("Unable to fetch similar movies at this time.")
+
