@@ -134,42 +134,6 @@ def recommend(movie):
         st.error(f"Recommendation error: {str(e)}")
         return []
 
-# Function to fetch movies by actor
-def fetch_movies_by_actor(actor_name):
-    try:
-        # First, get the actor's ID
-        search_url = f"https://api.themoviedb.org/3/search/person?api_key={API_KEY}&query={actor_name}"
-        search_response = requests.get(search_url).json()
-
-        if not search_response.get('results'):
-            return []
-
-        actor_id = search_response['results'][0]['id']
-
-        # Then, get their complete movie credits
-        credits_url = f"https://api.themoviedb.org/3/person/{actor_id}/movie_credits?api_key={API_KEY}"
-        credits_response = requests.get(credits_url).json()
-
-        # Get movies where they were part of the cast (not crew)
-        movies = credits_response.get('cast', [])
-
-        # Sort by popularity and get top 15 movies
-        movies.sort(key=lambda x: x.get('popularity', 0), reverse=True)
-        movies = movies[:15]
-
-        # Format the results
-        formatted_movies = []
-        for movie in movies:
-            if movie.get('title') and movie.get('id'):
-                poster = fetch_movie_details(movie['id'])['poster']
-                formatted_movies.append((movie['title'], poster))
-
-        return formatted_movies
-
-    except Exception as e:
-        st.error(f"Error fetching actor movies: {str(e)}")
-        return []
-
 # Function to fetch movies by genre
 def fetch_movies_by_genre(genre_id, page=1):
     try:
@@ -393,49 +357,46 @@ GENRES = {
 # Update the header section
 st.markdown("""
 <div class="header">
-   <h1>🎥 Welcome to the Movie Recommender System</h1>
-   <p>Get personalized recommendations or explore movies by genre!</p>
+    <h1>🎥 Welcome to the Movie Recommender System</h1>
+    <p>Search for your favorite movies and get personalized recommendations!</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Remove the old button container HTML and replace with simpler sidebar navigation
-st.sidebar.title("🎬 Navigation")
-page = st.sidebar.radio("Choose:", ["Movie Search"])
+# Movie Search
+movie_search = st.text_input("🔍 Search for a movie")
+if movie_search:
+    matching_movies = []
+    search_term = movie_search.lower()
 
-if page == "Movie Search":
-    movie_search = st.text_input("Search for a movie")
-    if movie_search:
-        matching_movies = []
-        search_term = movie_search.lower()
+    for title in movies_list:
+        if search_term in title.lower():
+            movie_index = movies[movies['title'] == title].index[0]
+            movie_id = movies.iloc[movie_index].id
+            details = fetch_movie_details(movie_id)
+            details['title'] = title
+            details['id'] = movie_id
+            matching_movies.append(details)
 
-        for title in movies_list:
-            if search_term in title.lower():
-                movie_index = movies[movies['title'] == title].index[0]
-                movie_id = movies.iloc[movie_index].id
-                details = fetch_movie_details(movie_id)
-                details['title'] = title
-                details['id'] = movie_id
-                matching_movies.append(details)
-
-        if matching_movies:
-            st.subheader(f"Found {len(matching_movies)} matches:")
-            for i in range(0, len(matching_movies), 5):
-                cols = st.columns(5)
-                batch = matching_movies[i:i+5]
-                for idx, (col, movie) in enumerate(zip(cols, batch)):
-                    with col:
-                        st.image(movie['poster'], caption=movie['title'])
-                        st.markdown(f"⭐ {movie['rating']}")
-                        st.write(f"{movie['genres']}")
-                        # Create a completely unique key using multiple identifiers
-                        unique_key = f"search_{page}{i}{idx}{hash(movie['title'])}{movie.get('id', '')}"
-                        if st.button("More Info", key=unique_key):
-                            st.session_state.selected_movie = movie
-                            st.rerun()
-        else:
-            st.error("🔍 No movies found matching your search.")
-
-
+    if matching_movies:
+        st.subheader("Search Results:")
+        cols = st.columns(5)
+        for idx, movie in enumerate(matching_movies[:5]):
+            with cols[idx]:
+                st.image(movie['poster'], use_container_width=True)
+                st.markdown(f"""
+                    <div class="movie-card">
+                        <div class="movie-title">{movie['title']}</div>
+                        <div class="movie-info">
+                            <span class="rating">⭐ {movie['rating']}</span>
+                            <span class="genres">🎭 {movie['genres']}</span>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                if st.button("More Info", key=f"search_{idx}_{movie['title']}"):
+                    st.session_state.selected_movie = movie
+                    st.rerun()
+    else:
+        st.error("🔍 No movies found matching your search.")
 
 # Display random movies section
 st.header("🎲 Explore Random Movies")
