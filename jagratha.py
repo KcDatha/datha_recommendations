@@ -397,7 +397,7 @@ elif page == "Actor Search":
                 batch = actor_movies[i:i+5]
                 for col, (movie_title, movie_poster) in zip(cols, batch):
                     with col:
-                        st.image(movie_poster, caption=movie_title, use_container_width=True)
+                        st.image(movie_poster, caption=movie_title)
         else:
             st.warning("No movies found for this actor.")
 
@@ -492,7 +492,7 @@ else:
     # Display movie details in two columns
     col1, col2 = st.columns([1, 2])
     with col1:
-        st.image(movie['poster'], use_container_width=True)
+        st.image(movie['poster'])
     
     with col2:
         st.title(movie['title'])
@@ -513,7 +513,7 @@ else:
             similar_movies_cols = st.columns(5)
             for idx, rec_movie in enumerate(recommended_movies):
                 with similar_movies_cols[idx]:
-                    st.image(rec_movie['poster'], caption=rec_movie['title'], use_container_width=True)
+                    st.image(rec_movie['poster'], caption=rec_movie['title'])
                     st.write(f"⭐ {rec_movie['rating']}")
                     st.write(f"🎭 {rec_movie['genres']}")
                     # Create unique key for recommendation buttons
