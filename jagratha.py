@@ -507,7 +507,6 @@ else:
 
     # Display similar movies section
     st.header("Similar Movies You Might Like")
-    try:
         recommended_movies = recommend(movie['title'])
         if recommended_movies:
             similar_movies_cols = st.columns(5)
