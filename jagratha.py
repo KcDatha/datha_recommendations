@@ -392,7 +392,7 @@ if page == "Movie Search":
                         unique_key = f"search_{page}{i}{idx}{hash(movie['title'])}{movie.get('id', '')}"
                         if st.button("More Info", key=unique_key):
                             st.session_state.selected_movie = movie
-                            st.rerun()
+                            safe_rerun()
         else:
             st.error("🔍 No movies found matching your search.")
 
@@ -487,7 +487,7 @@ if st.session_state.selected_movie is None:
                 button_key = f"random_{movie['id']}{i}{hash(movie['title'])}"
                 if st.button("More Info", key=button_key):
                     st.session_state.selected_movie = movie
-                    st.rerun()
+                    safe_rerun()
 
 else:
     # Display movie details when a movie is selected
@@ -497,7 +497,7 @@ else:
     if st.button("← Back to Movies"):
         st.session_state.selected_movie = None
         st.session_state.random_movies = get_random_movies(20)
-        st.rerun()
+        safe_rerun()
     
     # Display movie details in two columns
     col1, col2 = st.columns([1, 2])
@@ -530,8 +530,18 @@ else:
                     rec_button_key = f"similar_{idx}_{hash(rec_movie['title'])}"
                     if st.button("More Info", key=rec_button_key):
                         st.session_state.selected_movie = rec_movie
-                        st.rerun()
+                        safe_rerun()
         else:
             st.info("No similar movies found at this time.")
     except Exception as e:
         st.error(" are you sure! if yes please click again")
+
+def safe_rerun():
+    """Safely rerun the app regardless of Streamlit version."""
+    try:
+        st.rerun()
+    except AttributeError:
+        try:
+            st.experimental_rerun()
+        except AttributeError:
+            st.empty()  # Fallback if neither method is available
