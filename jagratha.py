@@ -245,6 +245,19 @@ def add_custom_css():
             .stTextInput > div > div > input {
                 color: #2c3e50 !important;
                 background-color: rgba(255, 255, 255, 0.9) !important;
+                caret-color: black !important;
+            }
+
+            /* Make the placeholder text darker too for better visibility */
+            .stTextInput > div > div > input::placeholder {
+                color: #2c3e50 !important;
+                opacity: 0.7;
+            }
+
+            /* Style for when the input is focused */
+            .stTextInput > div > div > input:focus {
+                border-color: #4CAF50 !important;
+                box-shadow: 0 0 0 1px #4CAF50 !important;
             }
 
             /* Movie details section */
@@ -392,7 +405,7 @@ if movie_search:
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
-                if st.button("More Info", key=f"search_{idx}_{movie['title']}"):
+                if st.button("Similar Movies You May Like", key=f"search_{idx}_{movie['title']}"):
                     st.session_state.selected_movie = movie
                     st.rerun()
     else:
@@ -418,7 +431,7 @@ if st.session_state.selected_movie is None:
                 st.write(f"🎭 {movie['genres']}")
                 # Create unique key for each button
                 button_key = f"random_{movie['id']}{i}"
-                if st.button("More Info", key=button_key):
+                if st.button("Similar Movies You May Like", key=button_key):
                     st.session_state.selected_movie = movie
                     st.rerun()
 
