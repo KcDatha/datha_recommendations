@@ -431,7 +431,7 @@ elif page == "Actor Search":
 #                 button_key = f"random_{movie['id']}{i}{hash(movie['title'])}"
 #                 if st.button("More Info", key=button_key):
 #                     st.session_state.selected_movie = movie
-#                     st.rerun()
+#                     st.experimental_rerun()
 
 # else:
 #     # Display movie details when a movie is selected
@@ -440,7 +440,7 @@ elif page == "Actor Search":
 #     # Add a back button
 #     if st.button("← Back to Movies"):
 #         st.session_state.selected_movie = None
-#         st.rerun()
+#         st.experimental_rerun()
     
 #     # Display movie details in two columns
 #     col1, col2 = st.columns([1, 2])
@@ -539,7 +539,7 @@ else:
 def safe_rerun():
     """Safely rerun the app regardless of Streamlit version."""
     try:
-        st.rerun()
+        st.experimental_rerun()
     except AttributeError:
         try:
             st.experimental_rerun()
