@@ -477,7 +477,7 @@ if st.session_state.selected_movie is None:
                 button_key = f"random_{movie['id']}{i}{hash(movie['title'])}"
                 if st.button("More Info", key=button_key):
                     st.session_state.selected_movie = movie
-                    st.rerun()
+                    st.experimental_rerun()
 
 else:
     # Display movie details when a movie is selected
