@@ -375,7 +375,7 @@ if page == "Movie Search":
                 batch = matching_movies[i:i+5]
                 for idx, (col, movie) in enumerate(zip(cols, batch)):
                     with col:
-                        st.image(movie['poster'], caption=movie['title'], use_container_width=True)
+                        st.image(movie['poster'], caption=movie['title'])
                         st.markdown(f"⭐ {movie['rating']}")
                         st.write(f"{movie['genres']}")
                         # Create a completely unique key using multiple identifiers
