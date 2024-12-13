@@ -194,55 +194,109 @@ def fetch_movies_by_genre(genre_id, page=1):
 # Inject custom CSS for advanced UI
 def add_custom_css():
     st.markdown("""
-       <style>
-           .stApp {
-               background-image: url('https://hougumlaw.com/wp-content/uploads/2016/05/light-website-backgrounds-light-color-background-images-light-color-background-images-for-website-1024x640.jpg'),
-                            linear-gradient(135deg, #f5f7fa 0%, #e3eeff 100%) !important;
-               background-attachment: fixed !important;
-               color: #1a1a1a !important;
-           }
+        <style>
+            /* Base text color and shadow for better readability */
+            .stApp {
+                background-image: url('https://hougumlaw.com/wp-content/uploads/2016/05/light-website-backgrounds-light-color-background-images-light-color-background-images-for-website-1024x640.jpg'),
+                             linear-gradient(135deg, #f5f7fa 0%, #e3eeff 100%) !important;
+                background-attachment: fixed !important;
+            }
 
-           /* Update header styles for better contrast */
-           .header {
-               text-align: center;
-               padding: 40px 20px;
-               background: linear-gradient(to right, rgba(255, 126, 95, 0.9), rgba(254, 180, 123, 0.9));
-               color: white;
-               border-radius: 8px;
-               margin-bottom: 30px;
-               backdrop-filter: blur(5px);
-           }
+            /* Make all text elements more readable */
+            .stApp, .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6 {
+                color: #1a1a1a !important;
+                text-shadow: 0px 0px 2px rgba(255, 255, 255, 0.8) !important;
+            }
 
-           /* Update movie card styles */
-           .movie-card {
-               flex: 0 0 auto;
-               background: rgba(255, 255, 255, 0.9);
-               border-radius: 12px;
-               padding: 10px;
-               width: 200px;
-               text-align: center;
-               box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-               transition: transform 0.3s ease, box-shadow 0.3s ease;
-               backdrop-filter: blur(5px);
-           }
+            /* Style for movie titles and info */
+            .movie-card {
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                padding: 15px;
+                margin: 10px 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
 
-           .movie-card:hover {
-               transform: scale(1.05);
-               box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
-           }
+            .movie-title {
+                color: #2c3e50 !important;
+                font-weight: bold;
+                text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            }
 
-           .movie-card h4 {
-               margin: 10px 0;
-               font-size: 1rem;
-               color: #2c3e50;
-           }
+            .movie-info {
+                color: #34495e !important;
+                text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            }
 
-           .movie-card p {
-               font-size: 0.85rem;
-               color: #34495e;
-           }
-       </style>
-   """, unsafe_allow_html=True)
+            /* Header styling */
+            .header {
+                background: linear-gradient(to right, rgba(255, 126, 95, 0.9), rgba(254, 180, 123, 0.9));
+                padding: 20px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+            }
+
+            .header h1, .header p {
+                color: white !important;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5) !important;
+            }
+
+            /* Button styling */
+            .stButton > button {
+                background-color: rgba(255, 255, 255, 0.9) !important;
+                color: #2c3e50 !important;
+                border: 1px solid #4CAF50 !important;
+                text-shadow: none !important;
+                font-weight: bold !important;
+            }
+
+            .stButton > button:hover {
+                background-color: #4CAF50 !important;
+                color: white !important;
+                border: 1px solid #4CAF50 !important;
+            }
+
+            /* Rating and genre tags */
+            .rating, .genres {
+                background-color: rgba(255, 255, 255, 0.9);
+                padding: 2px 6px;
+                border-radius: 4px;
+                margin: 2px;
+                display: inline-block;
+                color: #2c3e50 !important;
+                text-shadow: none !important;
+            }
+
+            /* Sidebar styling */
+            .css-1d391kg {  /* Sidebar */
+                background-color: rgba(255, 255, 255, 0.95) !important;
+            }
+
+            .css-1d391kg .stRadio label {
+                color: #2c3e50 !important;
+                text-shadow: none !important;
+            }
+
+            /* Search input styling */
+            .stTextInput > div > div > input {
+                color: #2c3e50 !important;
+                background-color: rgba(255, 255, 255, 0.9) !important;
+            }
+
+            /* Movie details section */
+            .movie-details {
+                background: rgba(255, 255, 255, 0.9);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 10px 0;
+            }
+
+            /* Error and info messages */
+            .stAlert {
+                text-shadow: none !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
 add_custom_css()
 
@@ -424,7 +478,7 @@ else:
     movie = st.session_state.selected_movie
 
     # Add a back button
-    if st.button("← Back to Movies"):
+    if st.button("← Back to Movies", key="back_button"):
         st.session_state.selected_movie = None
         st.session_state.random_movies = get_random_movies(20)  # Get new random movies when going back
         st.rerun()
@@ -435,12 +489,16 @@ else:
         st.image(movie['poster'], use_container_width=True)
 
     with col2:
-        st.title(movie['title'])
-        st.write(f"*Rating:* ⭐ {movie['rating']}")
-        st.write(f"*Release Date:* 📅 {movie['release_date']}")
-        st.write(f"*Genres:* 🎭 {movie['genres']}")
-        st.write("*Overview:*")
-        st.write(movie['overview'])
+        st.markdown(f"""
+            <div class="movie-details">
+                <h1>{movie['title']}</h1>
+                <p><span class="rating">⭐ {movie['rating']}</span></p>
+                <p><span class="genres">📅 {movie['release_date']}</span></p>
+                <p><span class="genres">🎭 {movie['genres']}</span></p>
+                <h3>Overview:</h3>
+                <p>{movie['overview']}</p>
+            </div>
+        """, unsafe_allow_html=True)
 
     # Display similar movies section
     st.header("Similar Movies You Might Like")
