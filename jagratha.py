@@ -505,20 +505,23 @@ else:
 
 
 
-    # Display similar movies section
+        # Display similar movies section
     st.header("Similar Movies You Might Like")
-    recommended_movies = recommend(movie['title'])
-    if recommended_movies:
-        similar_movies_cols = st.columns(5)
-        for idx, rec_movie in enumerate(recommended_movies):
-            with similar_movies_cols[idx]:
-                st.image(rec_movie['poster'], caption=rec_movie['title'])
-                st.write(f"⭐ {rec_movie['rating']}")
-                st.write(f"🎭 {rec_movie['genres']}")
-                # Create unique key for recommendation buttons
-                rec_button_key = f"similar_{idx}_{hash(rec_movie['title'])}"
-                if st.button("More Info", key=rec_button_key):
-                    st.session_state.selected_movie = rec_movie
-                    st.rerun()
-    else:
-        st.info("No similar movies found at this time.")
+    try:
+        recommended_movies = recommend(movie['title'])
+        if recommended_movies:
+            similar_movies_cols = st.columns(5)
+            for idx, rec_movie in enumerate(recommended_movies):
+                with similar_movies_cols[idx]:
+                    st.image(rec_movie['poster'], caption=rec_movie['title'])
+                    st.write(f"⭐ {rec_movie['rating']}")
+                    st.write(f"🎭 {rec_movie['genres']}")
+                    # Create unique key for recommendation buttons
+                    rec_button_key = f"similar_{idx}_{hash(rec_movie['title'])}"
+                    if st.button("More Info", key=rec_button_key):
+                        st.session_state.selected_movie = rec_movie
+                        st.rerun()
+        else:
+            st.info("No similar movies found at this time.")
+    except Exception as e:
+        st.error("Unable to fetch similar movies at this time.")
