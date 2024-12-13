@@ -487,7 +487,7 @@ else:
     if st.button("← Back to Movies"):
         st.session_state.selected_movie = None
         st.session_state.random_movies = get_random_movies(20)  # Get new random movies when going back
-        st.rerun()
+        st.experimental_rerun()
     
     # Display movie details in two columns
     col1, col2 = st.columns([1, 2])
