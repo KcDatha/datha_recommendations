@@ -6,7 +6,7 @@ import random
 # This MUST be the first Streamlit command
 st.set_page_config(page_title="🎥 Movie Recommender", layout="wide")
 
-# Now you can have other Streamlit commands
+# Now you can have other Streamlit 
 try:
     movies = pickle.load(open("movies_list.pkl", "rb"))
     movies_list = movies["title"].values
