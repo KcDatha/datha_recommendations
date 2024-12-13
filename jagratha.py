@@ -77,40 +77,41 @@ def get_random_movies(num_movies=20):
 # Function to recommend movies
 def recommend(movie):
     try:
+        # Add debug print to check if movie exists in DataFrame
         if movie not in movies['title'].values:
             st.warning(f"Movie '{movie}' not found in database")
             return []
             
+        # Get movie ID
         movie_index = movies[movies['title'] == movie].index[0]
         movie_id = movies.iloc[movie_index].id
         
+        # Add debug print for API call
         url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={API_KEY}&language=en-US&page=1"
         response = requests.get(url)
         
-        if response.status_code == 429:
-            st.error("TMDB API rate limit exceeded. Please try again later.")
-            return []
-        elif response.status_code != 200:
-            st.error(f"TMDB API error {response.status_code}: {response.text}")
+        # Check API response status
+        if response.status_code != 200:
+            st.warning(f"TMDB API error: {response.status_code}")
             return []
             
         data = response.json()
         
+        # Check if we got any recommendations
         if not data.get('results'):
             st.info("No recommendations found for this movie")
             return []
         
         recommended_movies = []
-        for movie in data['results'][:5]:
+        for movie in data['results'][:5]:  # Get top 5 recommendations
             details = fetch_movie_details(movie['id'])
-            details['title'] = movie.get('title', 'Unknown Title')
+            details['title'] = movie.get('title', 'Unknown Title')  # Add title to details
             recommended_movies.append(details)
         
         return recommended_movies
         
     except Exception as e:
         st.error(f"Recommendation error: {str(e)}")
-        st.error("Stack trace:", exc_info=True)
         return []
 
 # Function to fetch movies by actor
@@ -242,24 +243,15 @@ if 'page' not in st.session_state:
 if 'selected_movie' not in st.session_state:
     st.session_state.selected_movie = None
 
-# Update the load_data function with better error handling
+# Silently load data without any print or write statements
 @st.cache_data  # Cache the data loading
 def load_data():
-    try:
-        movies = pickle.load(open("movies_list.pkl", "rb"))
-        movies_list = movies["title"].values
-        return movies, movies_list
-    except FileNotFoundError:
-        st.error("Error: movies_list.pkl file not found. Please ensure the file exists in the correct directory.")
-        return None, None
-    except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
-        return None, None
+    movies = pickle.load(open("movies_list.pkl", "rb"))
+    movies_list = movies["title"].values
+    return movies, movies_list
 
-# Update the data loading section with error checking
+# Load data silently
 movies, movies_list = load_data()
-if movies is None:
-    st.stop()  # Stop execution if data loading failed
 
 # Remove any automatic writes or debug messages
 if 'write' in st.session_state:
