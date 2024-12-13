@@ -6,7 +6,7 @@ import random
 # This MUST be the first Streamlit command
 st.set_page_config(page_title="🎥 Movie Recommender", layout="wide")
 
-# Now you can have other Streamlit 
+# Now you can have other Streamlit commands
 try:
     movies = pickle.load(open("movies_list.pkl", "rb"))
     movies_list = movies["title"].values
@@ -398,15 +398,14 @@ if movie_search:
     else:
         st.error("🔍 No movies found matching your search.")
 
-# Display random movies section
-st.header("🎲 Explore Random Movies")
-
-# Generate random movies only once and store in session state
-if 'random_movies' not in st.session_state:
-    st.session_state.random_movies = get_random_movies(20)
-
-# Check if a movie is selected
+# Display random movies section only when no movie is selected
 if st.session_state.selected_movie is None:
+    st.header("🎲 Explore Random Movies")
+
+    # Generate random movies only once and store in session state
+    if 'random_movies' not in st.session_state:
+        st.session_state.random_movies = get_random_movies(20)
+
     # Display random movies grid using stored movies
     for i in range(0, len(st.session_state.random_movies), 5):
         row_movies = st.session_state.random_movies[i:i+5]
@@ -428,7 +427,7 @@ else:
     movie = st.session_state.selected_movie
 
     # Add a back button
-    if st.button("← Back to Movies", key="back_button"):
+    if st.button("← Back to Movies"):
         st.session_state.selected_movie = None
         st.session_state.random_movies = get_random_movies(20)  # Get new random movies when going back
         st.rerun()
