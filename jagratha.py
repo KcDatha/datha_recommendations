@@ -470,7 +470,7 @@ if st.session_state.selected_movie is None:
         
         for col, movie in zip(cols, row_movies):
             with col:
-                st.image(movie['poster'], caption=movie['title'], use_container_width=True)
+                st.image(movie['poster'], caption=movie['title'])
                 st.write(f"⭐ {movie['rating']}")
                 st.write(f"🎭 {movie['genres']}")
                 # Create unique key for each button
