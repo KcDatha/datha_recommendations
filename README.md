@@ -62,21 +62,6 @@ Welcome to the **Movie Recommendation System**, a dynamic and personalized platf
 
 ---
 
-## Screenshots
-
-### Home Page
-![Home Page](path_to_image_homepage)
-
-### Search Results
-![Search Results](path_to_image_searchresults)
-
-### Detailed Movie View
-![Detailed View](path_to_image_detailedview)
-
-### Similar Movie Recommendations
-![Recommendations](path_to_image_recommendations)
-
----
 
 ## Future Enhancements
 
